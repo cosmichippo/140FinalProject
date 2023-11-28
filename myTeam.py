@@ -15,7 +15,10 @@ def createTeam(firstIndex, secondIndex, isRed, first, second):
         firstAgent(firstIndex),
         secondAgent(secondIndex),
     ]
-    
+
+# 1. Stay on our side of the border as close to the opponents as possible without tresspassing
+# 2. Only tresspass if distance to closest opponent is greater than x to get a food very quickly
+
 class DefensiveReflexAgent(ReflexCaptureAgent):
     """
     A reflex agent that tries to keep its side Pacman-free.
@@ -71,11 +74,9 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
             'reverse': -2
         # we don't really want to go back the direction we came
         }
-    
 
-# 1. Stay on our side of the border as close to the opponents as possible without tresspassing
-# 2. Only tresspass if distance to closest opponent is greater than x to get a food very quickly
 
+#  if a ghost comes near us (certain radious) go get a capsule or run away
 
 class OffensiveReflexAgent(ReflexCaptureAgent):
     """
@@ -110,5 +111,3 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
             'distanceToFood': -1
             # minimizing the distance to food
         }
-
-#  if a ghost comes near us (certain radious) go get a capsule or run away
