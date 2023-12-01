@@ -65,7 +65,7 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
         sc = myState.getScaredTimer()
         features['foodDist'] = 0
         if sc > 0:
-            print(sc)
+            # print(sc)
             features['numInvaders'] = 0
             features['invaderDistance'] = -min(dists)
             if not myState.isPacman():
@@ -127,7 +127,7 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
         return {
             'numInvaders': -3000,     # -1000
         # we want them dead, not being invaders but in their side of the board
-            'onDefense': 1000,         # 100
+            'onDefense': 1700,         # 100
         # we value that this agent stays in our board (is a pacman)
             'invaderDistance': -500,   # -10
         # invader is 5 pos away f*W = -50
@@ -225,36 +225,48 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
             ghostDistance = min(ghostDistance)
         
 
-        radius = 5
+        radius = 7
         # If ghost is in the radius
         if (myState.isPacman()):
             features['onOffense'] = 1
             if (ghostDistance <= radius):
-                features['distanceToGhost'] = ghostDistance   # 100
-                features['capsulesInRadius'] = 1 if any(self.getMazeDistance(myPos, cap) <= radius for cap in capsules) else 0  #TODO: use capsule dist for this
+                features['distanceToGhost'] = -2.5 * ghostDistance   # 100
+                features['onOffense'] = 0.1
+                caps = [self.getMazeDistance(myPos, c) for c in capsules]
+                if len(caps) > 0:
+                    minCap = min(caps)
+                else:
+                    minCap = 0
+                features['capsulesInRadius'] = 1.5 * minCap if any(self.getMazeDistance(myPos, cap) <= radius for cap in capsules) else 0  #TODO: use capsule dist for this
             else:
                 features['reverse'] = 0
         else:
-            features['onOffense'] = -0.5        #TODO: reevaluate this line
+            features['onOffense'] = 0       # -0.5        #TODO: reevaluate this line
             if (ghostDistance <= radius):
-                features['distanceToGhost'] = -1 * ghostDistance
+                features['distanceToGhost'] = -9 * 1/ghostDistance
+                # print(features['distanceToGhost'])
+                features['distanceToFood'] = 0
+                features['successorScore'] = 0
+                features['reverse'] = 0
+                features['stop'] = 0
+                features['capsulesInRadius'] = 0
             else:
                 features['reverse'] = 0
 
         if len(scared) > 0:
-            print(scared)
+            # print(scared)
             features['distanceToGhost'] = 0
-            features['distanceToFood'] = features['distanceToFood'] * 2
+            features['distanceToFood'] = features['distanceToFood'] * 1.3
 
         return features
 
     def getWeights(self, gameState, action):
         return {
-            'successorScore': 1000,  # 100
-            'distanceToFood': -100,  # -10
+            'successorScore': 3000,  # 100
+            'distanceToFood': -200,  # -10
             'reverse': -2,           
-            'stop': -100,
-            'onOffense': 100,
-            'distanceToGhost': -90,  # -10             # Weight for distance to ghost
-            'capsulesInRadius': 50    # Weight for capsules within radius
+            'stop': -10000,
+            'onOffense': 1000,
+            'distanceToGhost': -180,  # -10             # Weight for distance to ghost
+            'capsulesInRadius': 160    # Weight for capsules within radius
         }
