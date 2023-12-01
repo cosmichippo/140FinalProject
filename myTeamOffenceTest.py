@@ -33,6 +33,7 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
         successor = self.getSuccessor(gameState, action)
         myState = successor.getAgentState(self.index)
         myPos = myState.getPosition()
+        foodList = self.getFood(successor).asList()
 
         # Computes whether we're on defense (1) or offense (0).
         features['onDefense'] = 1
@@ -50,15 +51,33 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
             closest = min(fdList)
         """
 
-
         # Computes distance to invaders we can see.
         enemies = [successor.getAgentState(i) for i in self.getOpponents(successor)]
         invaders = [a for a in enemies if a.isPacman() and a.getPosition() is not None]
+        
         features['numInvaders'] = len(invaders)
 
         if (len(invaders) > 0):
             dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
             features['invaderDistance'] = min(dists)
+        
+        # Scared timer new feature
+        sc = myState.getScaredTimer()
+        features['foodDist'] = 0
+        if sc > 0:
+            print(sc)
+            features['numInvaders'] = 0
+            features['invaderDistance'] = -min(dists)
+            if not myState.isPacman():
+                features['onDefense'] = -1
+            else:
+                features['onDefense'] = 1
+            fdList = []
+            for f in foodList:
+                fdList.append(self.getMazeDistance(myPos, f))
+            closest = min(fdList)
+            features['foodDist'] = closest
+
 
         if (action == Directions.STOP):
             features['stop'] = 1
@@ -121,7 +140,7 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
             'track': -1.5,
         # keeps track of both agents, stays close to the middle
         #   'scared': 1,
-        #   'foodDist': 1
+            'foodDist': -1000     # only for switching to offense
         # two features work together: if scared, forget defence, go for food
         }
 
@@ -162,6 +181,7 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
         capsules = self.getCapsules(successor)
 
         # This should always be True, but better safe than sorry.
+        
         if len(foodList) > 0:
             myPos = successor.getAgentState(self.index).getPosition()
             maxDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
@@ -180,6 +200,10 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
         
         # List of ghost indices
         ghostList = self.getOpponents(successor)
+        enemies = [successor.getAgentState(i) for i in self.getOpponents(successor)]
+        scared = [a.getScaredTimer() for a in enemies if not a.isPacman() and a.isScared()]
+
+
         # Closest ghost
 
 
@@ -197,35 +221,40 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
             invaders = [a for a in ghostPos if  a.getPosition() is not None]
             ghostDistance = [self.getMazeDistance(myPos, x.getPosition()) for x in invaders]
             # Distance to closest ghost
-            features['distanceToGhost'] = min(ghostDistance)
+            features['distanceToGhost'] = min(ghostDistance)   #TODO: distToG is being overwritten in lines 209 & 216
             ghostDistance = min(ghostDistance)
         
 
-        radius = 3
+        radius = 5
         # If ghost is in the radius
         if (myState.isPacman()):
             features['onOffense'] = 1
             if (ghostDistance <= radius):
-                features['distanceToGhost'] = 100
-                features['capsulesInRadius'] = 1 if any(self.getMazeDistance(myPos, cap) <= radius for cap in capsules) else 0
+                features['distanceToGhost'] = ghostDistance   # 100
+                features['capsulesInRadius'] = 1 if any(self.getMazeDistance(myPos, cap) <= radius for cap in capsules) else 0  #TODO: use capsule dist for this
             else:
                 features['reverse'] = 0
         else:
-            features['onOffense'] = -0.5
+            features['onOffense'] = -0.5        #TODO: reevaluate this line
             if (ghostDistance <= radius):
-                features['distanceToGhost'] = -100 
+                features['distanceToGhost'] = -1 * ghostDistance
             else:
                 features['reverse'] = 0
+
+        if len(scared) > 0:
+            print(scared)
+            features['distanceToGhost'] = 0
+            features['distanceToFood'] = features['distanceToFood'] * 2
 
         return features
 
     def getWeights(self, gameState, action):
         return {
-            'successorScore': 100,
-            'distanceToFood': -10,
-            'reverse': -10,
+            'successorScore': 1000,  # 100
+            'distanceToFood': -100,  # -10
+            'reverse': -2,           
             'stop': -100,
             'onOffense': 100,
-            'distanceToGhost': -10,  # Weight for distance to ghost
+            'distanceToGhost': -90,  # -10             # Weight for distance to ghost
             'capsulesInRadius': 50    # Weight for capsules within radius
         }
