@@ -20,7 +20,6 @@ def createTeam(firstIndex, secondIndex, isRed):  # , first, second):
 class DefensiveReflexAgent(ReflexCaptureAgent):
 
     def __init__(self, index, **kwargs):
-        print("new version")
         super().__init__(index)
 
     def getFeatures(self, gameState, action):
@@ -151,5 +150,5 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
             'successorScore': 1000,
             'distanceToFood': -10,
             'distanceToGhost': 8,
-            'eatCapsules': -5
+            'eatCapsules': -15
         }
