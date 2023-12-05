@@ -107,7 +107,8 @@ class CaptureApproximateQAgent(CaptureQAgent):
             'onDefense': 100,
             'invaderDistance': -10,
             'stop': -100,
-            'reverse': -2
+            'reverse': -2,
+            'track': -1.5
         }
         print("INIT WEIGHTS", self.weights)
         self.featExtractor = DefensiveFeatures
@@ -219,6 +220,16 @@ class DefensiveFeatures(FeatureExtractor):
         rev = Directions.REVERSE[gameState.getAgentState(agent.index).getDirection()]
         if (action == rev):
             features['reverse'] = 1 
+
+        track = 0
+        for p in enemies:
+            if p in invaders:
+                dist = agent.getMazeDistance(myPos, p.getPosition()) * 0.9 # avoid using these hyperparameters
+                track += dist
+            else:
+                dist = agent.getMazeDistance(myPos, p.getPosition()) * 0.2
+                track += dist
+            features['track'] = float(track) / (walls.getWidth() * walls.getHeight())
 
         # scale all features by 1/10
         for feature in features:
