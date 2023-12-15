@@ -2,8 +2,8 @@
 Agent for CSE 140 pacAI competition
 
 written by: 
-Laura
-Santiago
-Juan-Fernando Morales
-Brian
+Laura Rodrigo, 
+Santiago Meza, 
+Juan-Fernando Morales, 
+Brian Bae, 
 Ali
